@@ -604,6 +604,7 @@ export const ChatComposer = memo(
         codex: providerStatuses.find((provider) => provider.provider === "codex")?.models ?? [],
         claudeAgent:
           providerStatuses.find((provider) => provider.provider === "claudeAgent")?.models ?? [],
+        pi: providerStatuses.find((provider) => provider.provider === "pi")?.models ?? [],
       }),
       [providerStatuses],
     );

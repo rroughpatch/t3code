@@ -13,11 +13,10 @@
 import {
   DEFAULT_GIT_TEXT_GENERATION_MODEL_BY_PROVIDER,
   DEFAULT_SERVER_SETTINGS,
-  type ModelSelection,
-  type ProviderKind,
   ServerSettings,
   ServerSettingsError,
   type ServerSettingsPatch,
+  type TextGenerationModelSelection,
 } from "@t3tools/contracts";
 import {
   Cache,
@@ -91,7 +90,7 @@ export class ServerSettingsService extends Context.Service<
 
 const ServerSettingsJson = fromLenientJson(ServerSettings);
 
-const PROVIDER_ORDER: readonly ProviderKind[] = ["codex", "claudeAgent"];
+const TEXT_GENERATION_PROVIDER_ORDER = ["codex", "claudeAgent"] as const;
 
 /**
  * Ensure the `textGenerationModelSelection` points to an enabled provider.
@@ -105,7 +104,7 @@ function resolveTextGenerationProvider(settings: ServerSettings): ServerSettings
     return settings;
   }
 
-  const fallback = PROVIDER_ORDER.find((p) => settings.providers[p].enabled);
+  const fallback = TEXT_GENERATION_PROVIDER_ORDER.find((p) => settings.providers[p].enabled);
   if (!fallback) {
     // No providers enabled — return as-is; callers will report the error.
     return settings;
@@ -116,7 +115,7 @@ function resolveTextGenerationProvider(settings: ServerSettings): ServerSettings
     textGenerationModelSelection: {
       provider: fallback,
       model: DEFAULT_GIT_TEXT_GENERATION_MODEL_BY_PROVIDER[fallback],
-    } as ModelSelection,
+    } as TextGenerationModelSelection,
   };
 }
 
