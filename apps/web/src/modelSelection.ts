@@ -1,8 +1,9 @@
 import {
   DEFAULT_GIT_TEXT_GENERATION_MODEL_BY_PROVIDER,
-  type ModelSelection,
+  type GitTextGenerationProviderKind,
   type ProviderKind,
   type ServerProvider,
+  type TextGenerationModelSelection,
 } from "@t3tools/contracts";
 import { normalizeModelSlug, resolveSelectableModel } from "@t3tools/shared/model";
 import { getComposerProviderState } from "./components/chat/composerProviderRegistry";
@@ -10,6 +11,7 @@ import { UnifiedSettings } from "@t3tools/contracts/settings";
 import {
   getDefaultServerModel,
   getProviderModels,
+  isProviderEnabled,
   resolveSelectableProvider,
 } from "./providerModels";
 
@@ -30,6 +32,11 @@ export interface AppModelOption {
   isCustom: boolean;
 }
 
+const TEXT_GENERATION_PROVIDERS: readonly GitTextGenerationProviderKind[] = [
+  "codex",
+  "claudeAgent",
+] as const;
+
 const PROVIDER_CUSTOM_MODEL_CONFIG: Record<ProviderKind, ProviderCustomModelConfig> = {
   codex: {
     provider: "codex",
@@ -44,6 +51,14 @@ const PROVIDER_CUSTOM_MODEL_CONFIG: Record<ProviderKind, ProviderCustomModelConf
     description: "Save additional Claude model slugs for the picker and `/model` command.",
     placeholder: "your-claude-model-slug",
     example: "claude-sonnet-5-0",
+  },
+  pi: {
+    provider: "pi",
+    title: "Pi",
+    description:
+      "Save additional Pi model slugs for the picker as `provider/model`, for example `openai/gpt-5.4`.",
+    placeholder: "provider/model",
+    example: "openai/gpt-5.4",
   },
 };
 
@@ -165,18 +180,61 @@ export function getCustomModelOptionsByProvider(
       "claudeAgent",
       selectedProvider === "claudeAgent" ? selectedModel : undefined,
     ),
+    pi: getAppModelOptions(
+      settings,
+      providers,
+      "pi",
+      selectedProvider === "pi" ? selectedModel : undefined,
+    ),
   };
+}
+
+export function getTextGenerationModelOptionsByProvider(
+  settings: UnifiedSettings,
+  providers: ReadonlyArray<ServerProvider>,
+  selectedProvider?: GitTextGenerationProviderKind | null,
+  selectedModel?: string | null,
+): Record<GitTextGenerationProviderKind, ReadonlyArray<{ slug: string; name: string }>> {
+  return {
+    codex: getAppModelOptions(
+      settings,
+      providers,
+      "codex",
+      selectedProvider === "codex" ? selectedModel : undefined,
+    ),
+    claudeAgent: getAppModelOptions(
+      settings,
+      providers,
+      "claudeAgent",
+      selectedProvider === "claudeAgent" ? selectedModel : undefined,
+    ),
+  };
+}
+
+function resolveSelectableTextGenerationProvider(
+  providers: ReadonlyArray<ServerProvider>,
+  provider: ProviderKind | null | undefined,
+): GitTextGenerationProviderKind {
+  const requested: GitTextGenerationProviderKind =
+    provider === "claudeAgent" ? "claudeAgent" : "codex";
+  if (isProviderEnabled(providers, requested)) {
+    return requested;
+  }
+  return (
+    TEXT_GENERATION_PROVIDERS.find((candidate) => isProviderEnabled(providers, candidate)) ??
+    requested
+  );
 }
 
 export function resolveAppModelSelectionState(
   settings: UnifiedSettings,
   providers: ReadonlyArray<ServerProvider>,
-): ModelSelection {
+): TextGenerationModelSelection {
   const selection = settings.textGenerationModelSelection ?? {
     provider: "codex" as const,
     model: DEFAULT_GIT_TEXT_GENERATION_MODEL_BY_PROVIDER.codex,
   };
-  const provider = resolveSelectableProvider(providers, selection.provider);
+  const provider = resolveSelectableTextGenerationProvider(providers, selection.provider);
 
   // When the provider changed due to fallback (e.g. selected provider was disabled),
   // don't carry over the old provider's model — use the fallback provider's default.

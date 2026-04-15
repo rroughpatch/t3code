@@ -20,6 +20,13 @@ export const CursorIcon: Icon = (props) => (
   </svg>
 );
 
+export const PiIcon: Icon = (props) => (
+  <svg {...props} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M5 6h14v3h-5v9h-3V9H5z" />
+    <circle cx="18.5" cy="16.5" r="1.5" />
+  </svg>
+);
+
 export const TraeIcon: Icon = (props) => (
   <svg {...props} viewBox="0 0 24 24" fill="currentColor">
     {/* Back rectangle: left strip + bottom strip drawn separately — empty bottom-left corner is the gap between them */}

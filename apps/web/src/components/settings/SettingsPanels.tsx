@@ -43,7 +43,7 @@ import {
 } from "../../lib/desktopUpdateReactQuery";
 import {
   MAX_CUSTOM_MODEL_LENGTH,
-  getCustomModelOptionsByProvider,
+  getTextGenerationModelOptionsByProvider,
   resolveAppModelSelectionState,
 } from "../../modelSelection";
 import { ensureLocalApi, readLocalApi } from "../../localApi";
@@ -124,6 +124,12 @@ const PROVIDER_SETTINGS: readonly InstallProviderSettings[] = [
     title: "Claude",
     binaryPlaceholder: "Claude binary path",
     binaryDescription: "Path to the Claude binary",
+  },
+  {
+    provider: "pi",
+    title: "Pi",
+    binaryPlaceholder: "Pi binary path",
+    binaryDescription: "Path to the Pi binary",
   },
 ] as const;
 
@@ -513,12 +519,17 @@ export function GeneralSettingsPanel() {
         DEFAULT_UNIFIED_SETTINGS.providers.claudeAgent.binaryPath ||
       settings.providers.claudeAgent.customModels.length > 0,
     ),
+    pi: Boolean(
+      settings.providers.pi.binaryPath !== DEFAULT_UNIFIED_SETTINGS.providers.pi.binaryPath ||
+      settings.providers.pi.customModels.length > 0,
+    ),
   });
   const [customModelInputByProvider, setCustomModelInputByProvider] = useState<
     Record<ProviderKind, string>
   >({
     codex: "",
     claudeAgent: "",
+    pi: "",
   });
   const [customModelErrorByProvider, setCustomModelErrorByProvider] = useState<
     Partial<Record<ProviderKind, string | null>>
@@ -563,7 +574,7 @@ export function GeneralSettingsPanel() {
   const textGenProvider = textGenerationModelSelection.provider;
   const textGenModel = textGenerationModelSelection.model;
   const textGenModelOptions = textGenerationModelSelection.options;
-  const gitModelOptionsByProvider = getCustomModelOptionsByProvider(
+  const gitModelOptionsByProvider = getTextGenerationModelOptionsByProvider(
     settings,
     serverProviders,
     textGenProvider,
@@ -1025,11 +1036,18 @@ export function GeneralSettingsPanel() {
                 provider={textGenProvider}
                 model={textGenModel}
                 lockedProvider={null}
+                availableProviders={["codex", "claudeAgent"]}
                 providers={serverProviders}
-                modelOptionsByProvider={gitModelOptionsByProvider}
+                modelOptionsByProvider={{
+                  ...gitModelOptionsByProvider,
+                  pi: [],
+                }}
                 triggerVariant="outline"
                 triggerClassName="min-w-0 max-w-none shrink-0 text-foreground/90 hover:text-foreground"
                 onProviderModelChange={(provider, model) => {
+                  if (provider === "pi") {
+                    return;
+                  }
                   updateSettings({
                     textGenerationModelSelection: resolveAppModelSelectionState(
                       {

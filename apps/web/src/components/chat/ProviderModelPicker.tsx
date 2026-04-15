@@ -18,7 +18,7 @@ import {
   MenuSubTrigger,
   MenuTrigger,
 } from "../ui/menu";
-import { ClaudeAI, CursorIcon, Gemini, Icon, OpenAI, OpenCodeIcon } from "../Icons";
+import { ClaudeAI, CursorIcon, Gemini, Icon, OpenAI, OpenCodeIcon, PiIcon } from "../Icons";
 import { cn } from "~/lib/utils";
 import { getProviderSnapshot } from "../../providerModels";
 
@@ -33,6 +33,7 @@ function isAvailableProviderOption(option: (typeof PROVIDER_OPTIONS)[number]): o
 const PROVIDER_ICON_BY_PROVIDER: Record<ProviderPickerKind, Icon> = {
   codex: OpenAI,
   claudeAgent: ClaudeAI,
+  pi: PiIcon,
   cursor: CursorIcon,
 };
 
@@ -47,13 +48,20 @@ function providerIconClassName(
   provider: ProviderKind | ProviderPickerKind,
   fallbackClassName: string,
 ): string {
-  return provider === "claudeAgent" ? "text-[#d97757]" : fallbackClassName;
+  if (provider === "claudeAgent") {
+    return "text-[#d97757]";
+  }
+  if (provider === "pi") {
+    return "text-[#5d8f2a]";
+  }
+  return fallbackClassName;
 }
 
 export const ProviderModelPicker = memo(function ProviderModelPicker(props: {
   provider: ProviderKind;
   model: string;
   lockedProvider: ProviderKind | null;
+  availableProviders?: ReadonlyArray<ProviderKind>;
   providers?: ReadonlyArray<ServerProvider>;
   modelOptionsByProvider: Record<ProviderKind, ReadonlyArray<{ slug: string; name: string }>>;
   activeProviderIconClassName?: string;
@@ -65,6 +73,9 @@ export const ProviderModelPicker = memo(function ProviderModelPicker(props: {
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const activeProvider = props.lockedProvider ?? props.provider;
+  const availableProviderOptions = AVAILABLE_PROVIDER_OPTIONS.filter(
+    (option) => props.availableProviders?.includes(option.value) ?? true,
+  );
   const selectedProviderOptions = props.modelOptionsByProvider[activeProvider];
   const selectedModelLabel =
     selectedProviderOptions.find((option) => option.slug === props.model)?.name ?? props.model;
@@ -146,7 +157,7 @@ export const ProviderModelPicker = memo(function ProviderModelPicker(props: {
           </MenuGroup>
         ) : (
           <>
-            {AVAILABLE_PROVIDER_OPTIONS.map((option) => {
+            {availableProviderOptions.map((option) => {
               const OptionIcon = PROVIDER_ICON_BY_PROVIDER[option.value];
               const liveProvider = props.providers
                 ? getProviderSnapshot(props.providers, option.value)

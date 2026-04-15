@@ -10,12 +10,9 @@
  * @module RoutingTextGeneration
  */
 import { Effect, Layer, Context } from "effect";
+import type { ProviderKind } from "@t3tools/contracts";
 
-import {
-  TextGeneration,
-  type TextGenerationProvider,
-  type TextGenerationShape,
-} from "../Services/TextGeneration.ts";
+import { TextGeneration, type TextGenerationShape } from "../Services/TextGeneration.ts";
 import { CodexTextGenerationLive } from "./CodexTextGeneration.ts";
 import { ClaudeTextGenerationLive } from "./ClaudeTextGeneration.ts";
 
@@ -39,7 +36,7 @@ const makeRoutingTextGeneration = Effect.gen(function* () {
   const codex = yield* CodexTextGen;
   const claude = yield* ClaudeTextGen;
 
-  const route = (provider?: TextGenerationProvider): TextGenerationShape =>
+  const route = (provider?: ProviderKind): TextGenerationShape =>
     provider === "claudeAgent" ? claude : codex;
 
   return {

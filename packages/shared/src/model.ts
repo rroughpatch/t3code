@@ -6,6 +6,7 @@ import {
   type CodexModelOptions,
   type ModelCapabilities,
   type ModelSelection,
+  type PiModelOptions,
   type ProviderKind,
 } from "@t3tools/contracts";
 
@@ -115,6 +116,13 @@ export function normalizeClaudeModelOptionsWithCapabilities(
     ...(contextWindow !== undefined ? { contextWindow } : {}),
   };
   return Object.keys(nextOptions).length > 0 ? nextOptions : undefined;
+}
+
+export function normalizePiModelOptionsWithCapabilities(
+  _caps: ModelCapabilities,
+  _modelOptions: PiModelOptions | null | undefined,
+): PiModelOptions | undefined {
+  return undefined;
 }
 
 export function isClaudeUltrathinkPrompt(text: string | null | undefined): boolean {

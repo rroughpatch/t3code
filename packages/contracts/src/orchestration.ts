@@ -1,5 +1,5 @@
 import { Effect, Option, Schema, SchemaIssue, Struct } from "effect";
-import { ClaudeModelOptions, CodexModelOptions } from "./model";
+import { ClaudeModelOptions, CodexModelOptions, PiModelOptions } from "./model";
 import { RepositoryIdentity } from "./environment";
 import {
   ApprovalRequestId,
@@ -25,7 +25,7 @@ export const ORCHESTRATION_WS_METHODS = {
   subscribeThread: "orchestration.subscribeThread",
 } as const;
 
-export const ProviderKind = Schema.Literals(["codex", "claudeAgent"]);
+export const ProviderKind = Schema.Literals(["codex", "claudeAgent", "pi"]);
 export type ProviderKind = typeof ProviderKind.Type;
 export const ProviderApprovalPolicy = Schema.Literals([
   "untrusted",
@@ -57,7 +57,24 @@ export const ClaudeModelSelection = Schema.Struct({
 });
 export type ClaudeModelSelection = typeof ClaudeModelSelection.Type;
 
-export const ModelSelection = Schema.Union([CodexModelSelection, ClaudeModelSelection]);
+export const PiModelSelection = Schema.Struct({
+  provider: Schema.Literal("pi"),
+  model: TrimmedNonEmptyString,
+  options: Schema.optionalKey(PiModelOptions),
+});
+export type PiModelSelection = typeof PiModelSelection.Type;
+
+export const TextGenerationModelSelection = Schema.Union([
+  CodexModelSelection,
+  ClaudeModelSelection,
+]);
+export type TextGenerationModelSelection = typeof TextGenerationModelSelection.Type;
+
+export const ModelSelection = Schema.Union([
+  CodexModelSelection,
+  ClaudeModelSelection,
+  PiModelSelection,
+]);
 export type ModelSelection = typeof ModelSelection.Type;
 
 export const RuntimeMode = Schema.Literals([
